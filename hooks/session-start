@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# session-start hook for the deep-research plugin
+# Injects research capability awareness into the session context
+
+set -euo pipefail
+
+# Resolve plugin root relative to this script
+PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+# Read the skill description from frontmatter without loading full content
+SKILL_FILE="$PLUGIN_ROOT/skills/deep-research/SKILL.md"
+DESCRIPTION=""
+if [[ -f "$SKILL_FILE" ]]; then
+    DESCRIPTION=$(awk '/^---$/{n++; next} n==1 && /^description:/{sub(/^description: *"?/, ""); sub(/"? *$/, ""); print; exit}' "$SKILL_FILE")
+fi
+
+if [[ -z "$DESCRIPTION" ]]; then
+    DESCRIPTION="Orchestrate multi-agent deep research with adaptive depth, contradiction detection, and citation verification"
+fi
+
+CONTEXT="You have deep research capabilities via the deep-research plugin. When the user asks for research, investigation, or multi-source analysis, invoke the deep-research skill. Available skills: research-planning, adaptive-depth, multi-perspective, source-evaluation, contradiction-detection, citation-tracking, research-synthesis, and the orchestrating deep-research skill."
+
+# Output JSON with both fields for compatibility
+cat <<EOF
+{
+  "additional_context": "$CONTEXT",
+  "hookSpecificOutput": {
+    "additionalContext": "$CONTEXT"
+  }
+}
+EOF
