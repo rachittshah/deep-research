@@ -1,0 +1,12 @@
+{
+  "name": "deep-research",
+  "description": "SOTA deep research plugin for Claude Code. Multi-agent, multi-perspective, citation-verified research engine with adaptive depth control, contradiction detection, and source credibility scoring.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Rachit Shah"
+  },
+  "homepage": "https://github.com/rachittshah/deep-research",
+  "repository": "https://github.com/rachittshah/deep-research",
+  "license": "MIT",
+  "keywords": ["deep-research", "multi-agent", "research", "citations", "web-search", "synthesis"]
+}

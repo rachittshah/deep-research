@@ -1,0 +1,15 @@
+{
+  "name": "deep-research",
+  "description": "SOTA deep research plugin for Claude Code",
+  "owner": {
+    "name": "Rachit Shah"
+  },
+  "plugins": [
+    {
+      "name": "deep-research",
+      "description": "Multi-agent, multi-perspective, citation-verified research engine with adaptive depth control and contradiction detection.",
+      "version": "1.0.0",
+      "source": "./"
+    }
+  ]
+}
