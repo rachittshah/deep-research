@@ -32,18 +32,27 @@ Run queries using WebSearch. For each promising result:
 - Extract **verbatim quotes** — never paraphrase without also capturing the original text
 - Record the publication date, author/organization, and URL
 
-### 3. Evaluate Sources Inline
-For each source, assess credibility:
-- **High**: Peer-reviewed, government data, established institutions, recognized domain experts
-- **Medium**: Reputable news outlets, industry reports, well-sourced blogs
-- **Low**: Anonymous, undated, opinion-only, known-biased outlets
+### 3. Source Hierarchy and Evaluation
+Prioritize sources in this order:
+1. **Tier 1 (preferred)**: Peer-reviewed journals, government datasets/reports, official statistics
+2. **Tier 2**: Established institutional reports, recognized domain experts, reputable news outlets
+3. **Tier 3**: Industry reports, well-sourced analysis pieces
+4. **Tier 4 (use sparingly)**: Blogs, ed-tech journalism, commodity aggregators, opinion pieces
 
-Prefer high-credibility sources. Include lower-credibility sources only when they provide unique information unavailable elsewhere, and flag the limitation.
+**NEVER cite Wikipedia.** If Wikipedia is your only source for a claim, find the primary source Wikipedia cites and use that instead.
 
-### 4. Track Contradictions
+Deprioritize content farms, SEO-optimized listicles, and sites that aggregate without original analysis. Include Tier 4 sources only when they provide unique information unavailable elsewhere, and flag the limitation.
+
+### 4. URL Verification
+**Before including a URL, verify you actually fetched content from that URL during this session.** Never reconstruct or guess URLs from memory. If you remember a source but did not fetch it, either fetch it now or omit it. Every cited URL must be one you retrieved via WebFetch in this session.
+
+### 5. Temporal Consistency Check
+**Check temporal consistency: if you cite a paper from year X, the data in your claim must be from year X or earlier.** A 2022 paper cannot contain 2023 data. When citing statistics, cross-check the publication date against the data period. If a source says "latest data from 2021" but was published in 2023, cite the data year as 2021, not 2023.
+
+### 6. Track Contradictions
 When sources conflict, document both sides immediately using the structured format below. Do not silently discard contradictory evidence. Attempt to explain the discrepancy (different methodology, time period, scope).
 
-### 5. Recognize Diminishing Returns
+### 7. Recognize Diminishing Returns
 Stop searching a sub-angle when **3 or more consecutive queries yield no new claims** beyond what you already have. Log the query count and saturation point in your output.
 
 ## Output Format
@@ -55,14 +64,15 @@ Return findings using this exact structure for each discrete claim:
 **Claim**: [A specific, falsifiable assertion — not a vague summary]
 **Evidence**: "[Verbatim quote from source]" — [brief context of where this appears]
 **Source**: [URL] | [Page/article title] | [author/org] | [source_type: academic|news|government|industry|other] | [publication date or "undated"]
+**Data period**: [The year(s) the underlying data covers — may differ from publication date]
 **Confidence**: verified|likely|unverified
 **Perspective**: [Which perspective this finding represents]
 ```
 
 Confidence levels:
-- **verified**: Confirmed by 2+ independent high-credibility sources
+- **verified**: Confirmed by 2+ independent Tier 1-2 sources
 - **likely**: Supported by at least one credible source, no contradictions found
-- **unverified**: Single source, low-credibility source, or contradicted by other evidence
+- **unverified**: Single source, Tier 4 source, or contradicted by other evidence
 
 ## End-of-Report Sections
 
@@ -88,8 +98,10 @@ List important related questions outside your original scope so the orchestrator
 ## Rules
 
 - Never fabricate sources or evidence. If you cannot find information, say so explicitly.
+- **NEVER cite Wikipedia.** Trace claims to their primary sources instead.
+- **Only cite URLs you fetched via WebFetch in this session.** Never guess or reconstruct URLs.
+- **Verify temporal consistency** between publication dates and data periods before including a finding.
 - Prefer specificity over breadth. One well-sourced finding beats five vague ones.
 - Stay within your assigned angle. Flag out-of-scope discoveries as follow-up suggestions.
 - Always include verbatim quotes to preserve source fidelity.
-- Every finding must have a fetchable URL for downstream verification.
 - When a claim lacks a second source, mark confidence as "likely" or "unverified", never "verified".
