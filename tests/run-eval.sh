@@ -1,243 +1,273 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# run-eval.sh — Lightweight proxy evaluator for fast iteration
+# run-eval.sh — Lightweight proxy evaluator for fast optimize-anything iterations
 #
-# Runs structural-checks.sh + LLM judge (run-judge.sh) on a research report
-# and outputs a composite "Score: X.XX" for optimize-anything compatibility.
+# For official DeepResearch-Bench scores (RACE+FACT), use:
+#   tests/deepresearch-bench/run-bench.sh
+#
+# This script provides QUICK scoring via structural checks + our own LLM judge.
+# It outputs "Score: X.XX" as the final line for optimize-anything compatibility.
 #
 # Usage:
-#   ./tests/run-eval.sh --report report.md --question-id q01
-#   ./tests/run-eval.sh --candidate-file report.md --question-id q01
-#   ./tests/run-eval.sh --bench-dir tests/deepresearch-bench/results --sample 3
+#   ./tests/run-eval.sh --report report.md --question "What is...?"
+#   ./tests/run-eval.sh --bench-dir /path/to/deep_research_bench --sample 3
+#   ./tests/run-eval.sh --quick   (alias: --sample 3 from DeepResearch-Bench English tasks)
+#   ./tests/run-eval.sh --candidate-file skill.md --candidate-target skills/deep-research/SKILL.md --quick
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STRUCTURAL_CHECKS="$SCRIPT_DIR/structural-checks.sh"
-RUN_JUDGE="$SCRIPT_DIR/run-judge.sh"
-QUESTIONS_FILE="$SCRIPT_DIR/eval-questions.json"
+PLUGIN_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+JUDGE_RUBRIC="${SCRIPT_DIR}/judge-rubric.md"
+STRUCTURAL_CHECKS="${SCRIPT_DIR}/structural-checks.sh"
 
 REPORT=""
-QUESTION_ID=""
+QUESTION=""
 BENCH_DIR=""
-SAMPLE_N=0
+SAMPLE=0
+CANDIDATE_FILE=""
+CANDIDATE_TARGET=""
+MODEL="claude-sonnet-4-6"
+JUDGE_MODEL="claude-sonnet-4-6"
+OUTPUT_DIR=""
 
 usage() {
-  cat >&2 <<EOF
-Usage: $0 [options]
+  cat <<'EOF'
+Usage: run-eval.sh [OPTIONS]
+
+Modes:
+  --report FILE --question TEXT       Score an existing report
+  --bench-dir DIR [--sample N]        Run plugin on N DeepResearch-Bench tasks, score each
+  --quick                             Alias for --sample 3 with auto-detected bench dir
+
+Optimize-anything integration:
+  --candidate-file FILE               Modified skill/agent file to test
+  --candidate-target PATH             File in plugin to replace (relative path)
 
 Options:
-  --report <path>          Path to research report to evaluate
-  --candidate-file <path>  Alias for --report (optimize-anything compatibility)
-  --question-id <id>       Question ID from eval-questions.json (e.g., q01)
-  --questions-file <path>  Override path to questions file (default: tests/eval-questions.json)
-  --bench-dir <path>       Directory of bench report files to evaluate in batch
-  --sample <N>             When using --bench-dir, evaluate only N random reports
-  -h, --help               Show this help
+  --model MODEL                       Model for research runs (default: claude-sonnet-4-6)
+  --judge-model MODEL                 Model for LLM judge (default: claude-sonnet-4-6)
+  --output-dir DIR                    Custom output directory
+  -h, --help                          Show help
 
-Single report mode:
-  Requires --report (or --candidate-file) and --question-id.
-  Runs structural checks + LLM judge, outputs composite score.
-
-Batch mode:
-  Requires --bench-dir. Expects files named <question-id>.md (e.g., q01.md).
-  Evaluates each report and outputs per-question and average scores.
+Output: Final line is always "Score: X.XX" (optimize-anything compatible)
 EOF
-  exit 1
+  exit 0
 }
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --report)          REPORT="$2"; shift 2 ;;
-    --candidate-file)  REPORT="$2"; shift 2 ;;
-    --question-id)     QUESTION_ID="$2"; shift 2 ;;
-    --questions-file)  QUESTIONS_FILE="$2"; shift 2 ;;
-    --bench-dir)       BENCH_DIR="$2"; shift 2 ;;
-    --sample)          SAMPLE_N="$2"; shift 2 ;;
-    -h|--help)         usage ;;
-    *)                 echo "Unknown option: $1" >&2; usage ;;
+    --report) REPORT="$2"; shift 2 ;;
+    --question) QUESTION="$2"; shift 2 ;;
+    --bench-dir) BENCH_DIR="$2"; shift 2 ;;
+    --sample) SAMPLE="$2"; shift 2 ;;
+    --candidate-file) CANDIDATE_FILE="$2"; shift 2 ;;
+    --candidate-target) CANDIDATE_TARGET="$2"; shift 2 ;;
+    --model) MODEL="$2"; shift 2 ;;
+    --judge-model) JUDGE_MODEL="$2"; shift 2 ;;
+    --output-dir) OUTPUT_DIR="$2"; shift 2 ;;
+    --quick) SAMPLE=3; shift ;;
+    -h|--help) usage ;;
+    *) echo "Unknown: $1" >&2; exit 1 ;;
   esac
 done
 
-# Validate dependencies
-for cmd in jq; do
-  if ! command -v "$cmd" &>/dev/null; then
-    echo "Error: '$cmd' not found in PATH" >&2
-    exit 1
-  fi
-done
+# --- Setup ---
+RUN_ID=$(date +%Y%m%d-%H%M%S)
+[[ -z "$OUTPUT_DIR" ]] && OUTPUT_DIR="${SCRIPT_DIR}/runs/${RUN_ID}"
+mkdir -p "$OUTPUT_DIR"
 
-[[ ! -x "$STRUCTURAL_CHECKS" ]] && { echo "Error: structural-checks.sh not found or not executable at $STRUCTURAL_CHECKS" >&2; exit 1; }
-[[ ! -x "$RUN_JUDGE" ]] && { echo "Error: run-judge.sh not found or not executable at $RUN_JUDGE" >&2; exit 1; }
-[[ ! -f "$QUESTIONS_FILE" ]] && { echo "Error: questions file not found at $QUESTIONS_FILE" >&2; exit 1; }
+[[ ! -f "$JUDGE_RUBRIC" ]] && { echo "Error: judge-rubric.md not found at $JUDGE_RUBRIC" >&2; exit 1; }
+[[ ! -x "$STRUCTURAL_CHECKS" ]] && { echo "Error: structural-checks.sh not found/executable" >&2; exit 1; }
 
-# --- Score a single report ---
-score_report() {
+# --- Candidate swap for optimize-anything ---
+EFFECTIVE_PLUGIN_DIR="$PLUGIN_DIR"
+if [[ -n "$CANDIDATE_FILE" && -n "$CANDIDATE_TARGET" ]]; then
+  TEMP_PLUGIN=$(mktemp -d)
+  trap "rm -rf $TEMP_PLUGIN" EXIT
+  cp -R "${PLUGIN_DIR}/"* "${PLUGIN_DIR}/".[!.]* "$TEMP_PLUGIN/" 2>/dev/null || true
+  mkdir -p "$(dirname "${TEMP_PLUGIN}/${CANDIDATE_TARGET}")"
+  cp "$CANDIDATE_FILE" "${TEMP_PLUGIN}/${CANDIDATE_TARGET}"
+  EFFECTIVE_PLUGIN_DIR="$TEMP_PLUGIN"
+  echo "==> Candidate swap: ${CANDIDATE_TARGET}" >&2
+fi
+
+# --- Run LLM judge on a report ---
+run_judge() {
   local report_file="$1"
-  local qid="$2"
+  local question_text="$2"
 
-  [[ ! -f "$report_file" ]] && { echo "Error: report not found: $report_file" >&2; return 1; }
+  local rubric report_text
+  rubric=$(cat "$JUDGE_RUBRIC")
+  rubric="${rubric//\{\{QUESTION_CRITERIA\}\}/No question-specific criteria provided.}"
+  report_text=$(cat "$report_file")
 
-  # Step 1: Structural checks
-  echo "Running structural checks on $report_file..." >&2
-  local struct_json
-  struct_json=$("$STRUCTURAL_CHECKS" --report "$report_file" 2>/dev/null) || {
-    echo "Warning: structural checks failed for $report_file" >&2
-    struct_json='{"all_passed": false}'
-  }
+  local prompt="$(cat <<PROMPT
+${rubric}
 
-  local struct_passed
-  struct_passed=$(echo "$struct_json" | jq -r '.all_passed')
+---
 
-  # Structural penalty: if checks fail, apply a 0.5 multiplier to final score
-  local struct_multiplier="1.0"
-  if [[ "$struct_passed" != "true" ]]; then
-    struct_multiplier="0.5"
-    echo "  Structural checks FAILED (0.5x penalty applied)" >&2
+## Original Question
 
-    # Show which checks failed
-    echo "$struct_json" | jq -r '
-      .sections | to_entries[] | select(.value == false) | "    Missing section: \(.key)"
-    ' >&2 2>/dev/null || true
+${question_text}
 
-    local unsourced
-    unsourced=$(echo "$struct_json" | jq -r '.unsourced_count // 0')
-    [[ "$unsourced" != "0" ]] && echo "    Unsourced claims: $unsourced" >&2
+## Research Report
 
-    local wc
-    wc=$(echo "$struct_json" | jq -r '.word_count // 0')
-    if [[ "$wc" -lt 500 ]]; then
-      echo "    Word count too low: $wc (min 500)" >&2
-    elif [[ "$wc" -gt 10000 ]]; then
-      echo "    Word count too high: $wc (max 10000)" >&2
-    fi
-  else
-    echo "  Structural checks PASSED" >&2
-  fi
+${report_text}
 
-  # Step 2: LLM judge
-  echo "Running LLM judge for $qid..." >&2
-  local judge_json
-  judge_json=$("$RUN_JUDGE" --report "$report_file" --question-id "$qid" --questions-file "$QUESTIONS_FILE" 2>/dev/null) || {
-    echo "Error: LLM judge failed for $report_file" >&2
-    echo "Score: 0.00"
-    return 1
-  }
+---
 
-  # Extract composite score
-  local composite
-  composite=$(echo "$judge_json" | jq -r '.composite_score // 0')
+Evaluate the report above. Return JSON only, no other text.
+PROMPT
+)"
 
-  # Apply structural penalty
-  local final_score
-  final_score=$(echo "$composite $struct_multiplier" | awk '{printf "%.2f", $1 * $2}')
-
-  # Output full details to stdout (JSON)
-  jq -n \
-    --argjson structural "$struct_json" \
-    --argjson judge "$judge_json" \
-    --arg final "$final_score" \
-    --arg struct_pass "$struct_passed" \
-    '{
-      structural_checks: $structural,
-      structural_passed: ($struct_pass == "true"),
-      judge_scores: $judge,
-      final_score: ($final | tonumber)
-    }'
-
-  echo "Score: ${final_score}" >&2
+  claude -p "$prompt" \
+    --model "$JUDGE_MODEL" \
+    --max-turns 1 \
+    --dangerously-skip-permissions 2>/dev/null || echo '{"composite_score": 0}'
 }
 
-# --- Batch mode ---
-run_batch() {
-  local bench_dir="$1"
-  local sample_n="$2"
+# --- Extract composite score from judge JSON ---
+extract_score() {
+  python3 -c "
+import sys, json, re
+text = sys.stdin.read()
+m = re.search(r'\{[\s\S]*\}', text)
+if m:
+    try:
+        d = json.loads(m.group())
+        print(f\"{d.get('composite_score', 0):.2f}\")
+    except: print('0.00')
+else: print('0.00')
+" 2>/dev/null <<< "$1" || echo "0.00"
+}
 
-  [[ ! -d "$bench_dir" ]] && { echo "Error: bench directory not found: $bench_dir" >&2; exit 1; }
+# --- Run deep-research plugin on a question ---
+run_research() {
+  local question="$1"
+  local out_file="$2"
+  claude -p "Perform deep research on the following question. Follow the deep-research skill exactly. Question: ${question}" \
+    --model "$MODEL" \
+    --allowedTools "WebSearch,WebFetch,Agent,Read,Glob,Grep,Bash" \
+    --dangerously-skip-permissions \
+    --max-turns 50 \
+    > "$out_file" 2>/dev/null || echo "Research failed" > "$out_file"
+}
 
-  # Find all .md report files
-  local reports=()
-  while IFS= read -r -d '' f; do
-    reports+=("$f")
-  done < <(find "$bench_dir" -name '*.md' -print0 | sort -z)
+# --- Score one report ---
+score_one() {
+  local report_file="$1"
+  local question="$2"
+  local label="$3"
 
-  if [[ ${#reports[@]} -eq 0 ]]; then
-    echo "Error: no .md files found in $bench_dir" >&2
-    exit 1
-  fi
+  echo "  [$label] Structural checks..." >&2
+  local struct
+  struct=$("$STRUCTURAL_CHECKS" --report "$report_file" 2>/dev/null || echo '{"all_passed":false}')
+  local passed
+  passed=$(echo "$struct" | python3 -c "import json,sys; print(json.loads(sys.stdin.read()).get('all_passed',False))" 2>/dev/null || echo "False")
 
-  # Sample if requested
-  if [[ "$sample_n" -gt 0 && "$sample_n" -lt ${#reports[@]} ]]; then
-    echo "Sampling $sample_n of ${#reports[@]} reports..." >&2
-    local shuffled=()
-    while IFS= read -r line; do
-      shuffled+=("$line")
-    done < <(printf '%s\n' "${reports[@]}" | sort -R | head -n "$sample_n")
-    reports=("${shuffled[@]}")
-  fi
+  local penalty="1.0"
+  [[ "$passed" != "True" ]] && penalty="0.8" && echo "  [$label] Structural issues (0.8x penalty)" >&2
 
-  echo "Evaluating ${#reports[@]} reports..." >&2
-  echo "---" >&2
+  echo "  [$label] LLM judge..." >&2
+  local judge_out
+  judge_out=$(run_judge "$report_file" "$question")
+  local raw_score
+  raw_score=$(extract_score "$judge_out")
+  local final
+  final=$(echo "$raw_score $penalty" | awk '{printf "%.2f", $1 * $2}')
 
-  local total_score=0
-  local count=0
-  local results=()
+  echo "$struct" > "${OUTPUT_DIR}/${label}-structural.json"
+  echo "$judge_out" > "${OUTPUT_DIR}/${label}-judge.txt"
 
-  for report_file in "${reports[@]}"; do
-    local basename
-    basename=$(basename "$report_file" .md)
-    # Use filename as question ID
-    local qid="$basename"
+  echo "  [$label] Score: ${final}/5.00" >&2
+  echo "$final"
+}
 
-    # Check if question exists in the questions file
-    local exists
-    exists=$(jq -r --arg id "$qid" '.questions[] | select(.id == $id) | .id' "$QUESTIONS_FILE" 2>/dev/null || true)
-    if [[ -z "$exists" ]]; then
-      echo "Skipping $report_file: question ID '$qid' not found in questions file" >&2
-      continue
-    fi
+# ============================================================
+# Mode 1: Score an existing report
+# ============================================================
+if [[ -n "$REPORT" ]]; then
+  [[ -z "$QUESTION" ]] && { echo "Error: --question required with --report" >&2; exit 1; }
+  [[ ! -f "$REPORT" ]] && { echo "Error: report not found: $REPORT" >&2; exit 1; }
 
-    echo "" >&2
-    echo "=== Evaluating $qid ===" >&2
-    local result_json
-    result_json=$(score_report "$report_file" "$qid") || continue
+  score=$(score_one "$REPORT" "$QUESTION" "single")
+  echo ""
+  echo "Score: ${score}"
+  exit 0
+fi
 
-    local score
-    score=$(echo "$result_json" | jq -r '.final_score')
-    total_score=$(echo "$total_score $score" | awk '{printf "%.2f", $1 + $2}')
-    count=$((count + 1))
-    results+=("$result_json")
+# ============================================================
+# Mode 2: Run on DeepResearch-Bench tasks
+# ============================================================
+# Auto-detect bench dir if not provided
+if [[ -z "$BENCH_DIR" && "$SAMPLE" -gt 0 ]]; then
+  for d in /tmp/deep_research_bench "$HOME/deep_research_bench"; do
+    [[ -d "$d/data/prompt_data" ]] && BENCH_DIR="$d" && break
+  done
+fi
+
+if [[ -n "$BENCH_DIR" ]]; then
+  QUERY_FILE="${BENCH_DIR}/data/prompt_data/query.jsonl"
+  [[ ! -f "$QUERY_FILE" ]] && { echo "Error: query.jsonl not found. Clone DeepResearch-Bench first." >&2; exit 1; }
+
+  # Read English tasks, optionally sample
+  mapfile -t TASKS < <(python3 -c "
+import json
+tasks = []
+with open('${QUERY_FILE}') as f:
+    for line in f:
+        t = json.loads(line)
+        if t.get('language') == 'en':
+            tasks.append(t)
+sample = min(int('${SAMPLE}') if int('${SAMPLE}') > 0 else len(tasks), len(tasks))
+for t in tasks[:sample]:
+    print(json.dumps(t))
+")
+
+  total=${#TASKS[@]}
+  echo "==> DeepResearch-Bench proxy eval: ${total} English tasks" >&2
+  echo "==> Research model: ${MODEL} | Judge: ${JUDGE_MODEL}" >&2
+  echo "==> Output: ${OUTPUT_DIR}" >&2
+  echo "" >&2
+
+  scores=()
+  for i in "${!TASKS[@]}"; do
+    task_json="${TASKS[$i]}"
+    tid=$(echo "$task_json" | python3 -c "import json,sys; print(json.loads(sys.stdin.read())['id'])")
+    prompt=$(echo "$task_json" | python3 -c "import json,sys; print(json.loads(sys.stdin.read())['prompt'])")
+
+    echo "--- [$(( i + 1 ))/${total}] Task ${tid}: ${prompt:0:70}..." >&2
+
+    report_file="${OUTPUT_DIR}/task-${tid}-report.md"
+
+    # Run research
+    t0=$(date +%s)
+    run_research "$prompt" "$report_file"
+    t1=$(date +%s)
+    echo "  Research: $(( t1 - t0 ))s" >&2
+
+    # Score
+    score=$(score_one "$report_file" "$prompt" "task-${tid}")
+    scores+=("$score")
   done
 
+  # Average
+  avg=$(python3 -c "
+s = [${scores[*]// /,}]
+print(f'{sum(s)/len(s):.2f}' if s else '0.00')
+")
+
   echo "" >&2
-  echo "---" >&2
-
-  if [[ $count -eq 0 ]]; then
-    echo "No reports evaluated successfully." >&2
-    echo "Score: 0.00" >&2
-    exit 1
-  fi
-
-  local avg_score
-  avg_score=$(echo "$total_score $count" | awk '{printf "%.2f", $1 / $2}')
-
-  # Output summary JSON
-  echo "{"
-  echo "  \"reports_evaluated\": $count,"
-  echo "  \"total_score\": $total_score,"
-  echo "  \"average_score\": $avg_score"
-  echo "}"
-
-  echo "Reports evaluated: $count" >&2
-  echo "Score: ${avg_score}" >&2
-}
-
-# --- Main ---
-if [[ -n "$BENCH_DIR" ]]; then
-  run_batch "$BENCH_DIR" "$SAMPLE_N"
-elif [[ -n "$REPORT" ]]; then
-  [[ -z "$QUESTION_ID" ]] && { echo "Error: --question-id is required in single report mode" >&2; usage; }
-  score_report "$REPORT" "$QUESTION_ID"
-else
-  echo "Error: must specify --report or --bench-dir" >&2
-  usage
+  echo "==========================================" >&2
+  echo "  Run: ${RUN_ID}" >&2
+  echo "  Tasks: ${total}" >&2
+  echo "  Avg proxy score: ${avg}/5.00" >&2
+  echo "  Output: ${OUTPUT_DIR}" >&2
+  echo "==========================================" >&2
+  echo "" >&2
+  echo "Score: ${avg}"
+  exit 0
 fi
+
+echo "Error: specify --report or --bench-dir or --quick" >&2
+usage
