@@ -296,6 +296,72 @@ cat tests/deepresearch-bench/results/fact_result.txt
 
 *Our target: beat Claude-3.7-Sonnet baseline (42.18) and approach top-5 (45+)*
 
+## Optimization History
+
+Full details: [`docs/optimization-log.md`](docs/optimization-log.md)
+
+### Round 1: Post-Build Optimization
+
+After building all skills and agents, every agent prompt and the orchestration skill were optimized through 5-7 rounds of reflective mutation using per-artifact LLM judge scoring.
+
+| Artifact | Dimensions Scored | Rounds | Result |
+|----------|------------------|--------|--------|
+| `agents/researcher.md` | Specificity, Source Attribution, Query Strategy, Diminishing Returns, Contradiction Handling, Structured Output, Conciseness | 6 | All 7+ |
+| `agents/critic.md` | Gap Detection, Contradiction Detection, Source Audit, Prioritization, Actionability, False Positive Rate, Conciseness | 7 | All improved |
+| `agents/synthesizer.md` | Thematic Org, Citation Rigor, Contradiction Presentation, Perspective Balance, Writing Quality, Report Completeness, Limitation Honesty, Conciseness | 7 | All 9/10 |
+| `skills/deep-research/SKILL.md` | Pipeline Clarity, Parallel Dispatch, Plan Quality, Critique Integration, Preset Differentiation, Red Flag Coverage, Skill Composability, Compliance Enforcement | 6 | All 9/10 |
+
+### Benchmark: DeepResearch-Bench (5 PhD-level tasks, Opus 4.6 judge)
+
+| Task | Topic | Domain | Cites | Comp. | Acc. | Cite Q. | Bal. | Coh. | Src. | **Score** |
+|------|-------|--------|-------|-------|------|---------|------|------|------|-----------|
+| 51 | Japan elderly market 2020-2050 | Finance | 31 | 5 | 4 | 4 | 5 | 5 | 4 | **4.50** |
+| 56 | Asymmetric first-price auctions | Math/Econ | 25 | 5 | 5 | 4 | 5 | 5 | 5 | **4.85** |
+| 61 | Chub mackerel price dynamics | Marine Sci | 23 | 5 | 4 | 4 | 5 | 5 | 4 | **4.55** |
+| 71 | AIGC in K-12 education | Education | 33 | 5 | 4 | 5 | 5 | 5 | 4 | **4.70** |
+| 81 | Historical narrative reinterpretation | History | 26 | 5 | 4 | 4 | 4 | 5 | 3 | **4.20** |
+| | | **AVG** | **27.6** | **5.0** | **4.2** | **4.2** | **4.8** | **5.0** | **4.0** | **4.56** |
+
+**Strengths**: Perfect completeness (5.0) and coherence (5.0). Strong balance (4.8). Avg 27.6 citations/report. All structural checks passed.
+
+**Weaknesses identified**: Source credibility (4.0) — Wikipedia reliance. Citation quality (4.2) — URL mismatches. Accuracy (4.2) — temporal inconsistencies.
+
+### Round 2: Post-Benchmark Targeted Optimization
+
+Targeted the three specific weaknesses with surgical fixes across all artifacts:
+
+```mermaid
+graph LR
+    Bench["Benchmark<br/>Avg 4.56/5.00"] --> Weakness["Weakness Analysis<br/>Src: 4.0 | Cite: 4.2 | Acc: 4.2"]
+    Weakness --> R["Researcher<br/>Wikipedia ban<br/>URL verification<br/>Temporal checks"]
+    Weakness --> C["Critic<br/>Wikipedia detection<br/>URL audit<br/>Diversity check"]
+    Weakness --> S["Synthesizer<br/>Deduplication<br/>Type labeling<br/>Credibility ordering"]
+    Weakness --> SK["Skills<br/>Source hierarchy (0.0-1.0)<br/>Anti-hallucination rules"]
+    Weakness --> O["Orchestrator<br/>Source gates at<br/>every phase"]
+    R --> Expected["Expected<br/>Avg 4.70-4.85"]
+    C --> Expected
+    S --> Expected
+    SK --> Expected
+    O --> Expected
+
+    style Bench fill:#e8f5e9
+    style Weakness fill:#ffebee
+    style Expected fill:#e3f2fd
+```
+
+**Key rules added across the system:**
+
+| Rule | Where Enforced | Why |
+|------|---------------|-----|
+| Wikipedia BANNED (weight 0.0) | Researcher, Critic, Synthesizer, Source-eval skill, Orchestrator | Task 81: 9/26 sources were Wikipedia |
+| URL verification (must have fetched it) | Researcher, Citation-tracking skill, Orchestrator review | Task 56: 3 URLs didn't match cited papers |
+| Temporal consistency (pub year >= data year) | Researcher, Critic, Citation-tracking skill | Task 61: 2022 paper cited for 2023 data |
+| Source hierarchy with numeric weights | Source-eval skill (peer-reviewed 1.0 → Wikipedia 0.0) | Systematic credibility scoring |
+| 50% minimum quality threshold | Source-eval skill | Ensure majority authoritative sources |
+| Source type labeling in reports | Synthesizer | Reader can assess credibility at a glance |
+| Credibility-ordered Sources appendix | Synthesizer | Most authoritative sources listed first |
+| Cross-reference for critical claims | Critic | Single-source critical claims flagged |
+
 ## Skills Reference
 
 | Skill | Purpose |
@@ -343,6 +409,8 @@ deep-research/
 │   ├── research-plan.md         /research-plan
 │   └── research-review.md       /research-review
 ├── templates/                   Report and source-card templates
+├── docs/                        Optimization logs and methodology
+│   └── optimization-log.md      Full optimization history with scores
 └── tests/                       Evaluation harness
     ├── run-eval.sh              Fast proxy evaluator (optimize-anything compatible)
     ├── judge-rubric.md          LLM judge prompt with 6-dimension rubrics
