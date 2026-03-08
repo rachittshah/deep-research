@@ -1,0 +1,365 @@
+{
+  "version": "1.0",
+  "questions": [
+    {
+      "id": "q01",
+      "question": "What is the current state of nuclear fusion energy research, and how close are we to achieving commercially viable fusion power?",
+      "type": "exploratory",
+      "complexity": { "breadth": "high", "depth": "high", "ambiguity": "medium" },
+      "domains": ["energy", "physics", "engineering"],
+      "expected_angles": [
+        "Magnetic confinement (tokamak) approaches like ITER",
+        "Inertial confinement and NIF results",
+        "Private fusion startups and their timelines",
+        "Materials science challenges (plasma-facing materials, tritium breeding)",
+        "Economic viability compared to renewables",
+        "Regulatory and grid integration considerations"
+      ],
+      "rubric_criteria": [
+        { "dimension": "completeness", "criterion": "Covers at least 3 distinct fusion approaches (tokamak, stellarator, inertial, magnetized target, etc.)", "weight": 1 },
+        { "dimension": "accuracy", "criterion": "Correctly states NIF ignition milestone details and date", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Cites peer-reviewed or institutional sources for plasma physics claims", "weight": 1 },
+        { "dimension": "balance", "criterion": "Presents both optimistic commercial timelines and skeptical expert assessments", "weight": 1 },
+        { "dimension": "source_credibility", "criterion": "References authoritative bodies (DOE, IAEA, or major research labs)", "weight": 1 }
+      ],
+      "preset": "thorough",
+      "max_cost_usd": 2.00
+    },
+    {
+      "id": "q02",
+      "question": "Explain the current capabilities and limitations of quantum computing, including which real-world problems it can solve better than classical computers.",
+      "type": "exploratory",
+      "complexity": { "breadth": "high", "depth": "high", "ambiguity": "low" },
+      "domains": ["technology", "computer_science", "cryptography"],
+      "expected_angles": [
+        "Quantum supremacy/advantage claims and their validity",
+        "Qubit technologies (superconducting, trapped ion, photonic, topological)",
+        "Practical applications (optimization, drug discovery, cryptography)",
+        "Error correction and the fault-tolerance threshold",
+        "Current hardware limitations (decoherence, gate fidelity)",
+        "Timeline to practical quantum advantage"
+      ],
+      "rubric_criteria": [
+        { "dimension": "accuracy", "criterion": "Correctly distinguishes quantum supremacy demonstrations from practical quantum advantage", "weight": 1 },
+        { "dimension": "completeness", "criterion": "Covers at least 3 qubit modalities and their trade-offs", "weight": 1 },
+        { "dimension": "coherence", "criterion": "Logically progresses from fundamentals to current state to future outlook", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Cites specific papers or company announcements for hardware milestones", "weight": 1 },
+        { "dimension": "balance", "criterion": "Addresses both hype and genuine skepticism about near-term utility", "weight": 1 }
+      ],
+      "preset": "thorough",
+      "max_cost_usd": 2.00
+    },
+    {
+      "id": "q03",
+      "question": "What are the most promising CRISPR-based therapeutics currently in clinical trials, and what safety concerns remain?",
+      "type": "exploratory",
+      "complexity": { "breadth": "medium", "depth": "high", "ambiguity": "low" },
+      "domains": ["biotechnology", "medicine", "genetics"],
+      "expected_angles": [
+        "Approved therapies (e.g., Casgevy for sickle cell disease)",
+        "In-vivo vs ex-vivo CRISPR approaches",
+        "Off-target editing risks and detection methods",
+        "Delivery mechanism challenges (viral vectors, lipid nanoparticles)",
+        "Ethical considerations of germline editing",
+        "Pipeline of clinical trials and their phases"
+      ],
+      "rubric_criteria": [
+        { "dimension": "accuracy", "criterion": "Correctly identifies at least 2 CRISPR therapies with their approval status or trial phase", "weight": 1 },
+        { "dimension": "completeness", "criterion": "Addresses both efficacy results and safety/off-target concerns", "weight": 1 },
+        { "dimension": "source_credibility", "criterion": "References clinical trial registries, FDA/EMA, or peer-reviewed journals", "weight": 1 },
+        { "dimension": "balance", "criterion": "Discusses both therapeutic promise and unresolved safety questions", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Provides specific trial identifiers or publication references for clinical data", "weight": 1 }
+      ],
+      "preset": "standard",
+      "max_cost_usd": 1.50
+    },
+    {
+      "id": "q04",
+      "question": "Compare the leading large language model families (GPT, Claude, Gemini, Llama) across capabilities, safety approaches, and deployment considerations for enterprise use.",
+      "type": "comparative",
+      "complexity": { "breadth": "high", "depth": "medium", "ambiguity": "medium" },
+      "domains": ["artificial_intelligence", "technology", "business"],
+      "expected_angles": [
+        "Benchmark performance across reasoning, coding, and multimodal tasks",
+        "Safety and alignment approaches of each provider",
+        "Pricing and API availability",
+        "Open-weight vs closed-source trade-offs",
+        "Fine-tuning and customization options",
+        "Data privacy and compliance features"
+      ],
+      "rubric_criteria": [
+        { "dimension": "completeness", "criterion": "Covers at least 4 model families with specific model versions", "weight": 1 },
+        { "dimension": "balance", "criterion": "Does not systematically favor one provider; acknowledges strengths and weaknesses of each", "weight": 1 },
+        { "dimension": "accuracy", "criterion": "Benchmark scores and capability claims match published evaluations", "weight": 1 },
+        { "dimension": "coherence", "criterion": "Uses a consistent comparison framework across all models", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Cites official benchmarks, technical reports, or model cards for performance claims", "weight": 1 }
+      ],
+      "preset": "standard",
+      "max_cost_usd": 1.50
+    },
+    {
+      "id": "q05",
+      "question": "Compare battery electric vehicles, hydrogen fuel cell vehicles, and synthetic e-fuels as pathways to decarbonize transportation. What are the trade-offs in efficiency, infrastructure, and cost?",
+      "type": "comparative",
+      "complexity": { "breadth": "high", "depth": "medium", "ambiguity": "medium" },
+      "domains": ["energy", "transportation", "environment"],
+      "expected_angles": [
+        "Well-to-wheel energy efficiency comparison",
+        "Infrastructure requirements and current deployment",
+        "Total cost of ownership projections",
+        "Heavy transport and aviation considerations",
+        "Raw material supply chain constraints",
+        "Policy and regulatory landscape"
+      ],
+      "rubric_criteria": [
+        { "dimension": "accuracy", "criterion": "Provides correct well-to-wheel efficiency figures for each pathway", "weight": 1 },
+        { "dimension": "completeness", "criterion": "Covers light vehicles, heavy transport, and aviation separately", "weight": 1 },
+        { "dimension": "balance", "criterion": "Acknowledges that different pathways suit different transport segments", "weight": 1 },
+        { "dimension": "source_credibility", "criterion": "References IEA, IRENA, DOE, or peer-reviewed lifecycle analyses", "weight": 1 },
+        { "dimension": "coherence", "criterion": "Organizes comparison by clear dimensions rather than listing facts about each option", "weight": 1 }
+      ],
+      "preset": "thorough",
+      "max_cost_usd": 2.00
+    },
+    {
+      "id": "q06",
+      "question": "Compare the approaches to universal basic income (UBI) trials worldwide. What do the results tell us about UBI's feasibility as a poverty reduction tool?",
+      "type": "comparative",
+      "complexity": { "breadth": "high", "depth": "medium", "ambiguity": "high" },
+      "domains": ["economics", "social_policy", "politics"],
+      "expected_angles": [
+        "Finland, Kenya (GiveDirectly), Stockton SEED, and other major trials",
+        "Measured outcomes: employment, health, well-being",
+        "Methodological limitations of existing trials",
+        "Funding mechanisms and fiscal sustainability",
+        "Differences between developed and developing country contexts",
+        "Political feasibility and public opinion"
+      ],
+      "rubric_criteria": [
+        { "dimension": "completeness", "criterion": "Covers at least 4 distinct UBI trials from different countries", "weight": 1 },
+        { "dimension": "accuracy", "criterion": "Correctly reports key findings (e.g., employment effects) from major trials", "weight": 1 },
+        { "dimension": "balance", "criterion": "Presents both evidence supporting and questioning UBI effectiveness", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Cites the actual trial reports or academic evaluations, not just news coverage", "weight": 1 },
+        { "dimension": "coherence", "criterion": "Synthesizes findings into a coherent assessment rather than just listing trial results", "weight": 1 }
+      ],
+      "preset": "standard",
+      "max_cost_usd": 1.50
+    },
+    {
+      "id": "q07",
+      "question": "Should governments impose strict regulations on AI development, including mandatory licensing and safety testing? Analyze the strongest arguments on all sides.",
+      "type": "controversial",
+      "complexity": { "breadth": "high", "depth": "high", "ambiguity": "high" },
+      "domains": ["artificial_intelligence", "policy", "law", "ethics"],
+      "expected_angles": [
+        "Arguments for strict regulation (existential risk, bias, job displacement)",
+        "Arguments against (innovation stifling, regulatory capture, technical infeasibility)",
+        "Existing regulatory frameworks (EU AI Act, executive orders)",
+        "Industry self-regulation proposals",
+        "International coordination challenges",
+        "Sector-specific vs horizontal regulation approaches"
+      ],
+      "rubric_criteria": [
+        { "dimension": "balance", "criterion": "Presents at least 3 distinct positions (pro-regulation, anti-regulation, middle-ground) with equal depth", "weight": 1 },
+        { "dimension": "accuracy", "criterion": "Correctly describes the EU AI Act's risk-based classification system", "weight": 1 },
+        { "dimension": "completeness", "criterion": "Addresses both near-term harms (bias, surveillance) and long-term risks (AGI safety)", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Cites specific policy proposals, legislation, or position papers from stakeholders", "weight": 1 },
+        { "dimension": "coherence", "criterion": "Structures arguments thematically rather than as disconnected talking points", "weight": 1 }
+      ],
+      "preset": "thorough",
+      "max_cost_usd": 2.00
+    },
+    {
+      "id": "q08",
+      "question": "Is cryptocurrency a net positive or negative for the global financial system? Evaluate the evidence for and against widespread crypto adoption.",
+      "type": "controversial",
+      "complexity": { "breadth": "high", "depth": "medium", "ambiguity": "high" },
+      "domains": ["finance", "technology", "economics", "regulation"],
+      "expected_angles": [
+        "Financial inclusion in developing countries",
+        "Illicit finance, fraud, and consumer protection concerns",
+        "Environmental impact of proof-of-work vs proof-of-stake",
+        "Stablecoin risks and CBDC alternatives",
+        "DeFi innovation vs systemic risk",
+        "Regulatory responses across jurisdictions"
+      ],
+      "rubric_criteria": [
+        { "dimension": "balance", "criterion": "Gives substantive treatment to both crypto advocates and critics without strawmanning either side", "weight": 1 },
+        { "dimension": "accuracy", "criterion": "Uses correct figures for crypto market events (e.g., FTX collapse, Terra/Luna, ETH merge impact)", "weight": 1 },
+        { "dimension": "completeness", "criterion": "Distinguishes between Bitcoin, Ethereum, stablecoins, and DeFi rather than treating crypto as monolithic", "weight": 1 },
+        { "dimension": "source_credibility", "criterion": "References central bank reports, IMF/BIS analysis, or academic research alongside industry sources", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Cites specific regulatory actions or enforcement cases with dates", "weight": 1 }
+      ],
+      "preset": "standard",
+      "max_cost_usd": 1.50
+    },
+    {
+      "id": "q09",
+      "question": "Are low-carbohydrate and ketogenic diets healthier than traditional balanced diets for the general population? Evaluate the conflicting evidence.",
+      "type": "controversial",
+      "complexity": { "breadth": "medium", "depth": "high", "ambiguity": "high" },
+      "domains": ["nutrition", "medicine", "public_health"],
+      "expected_angles": [
+        "Short-term weight loss efficacy and mechanisms",
+        "Long-term cardiovascular outcomes and mortality data",
+        "Metabolic health markers (insulin, HbA1c, lipids)",
+        "Gut microbiome effects",
+        "Sustainability and adherence challenges",
+        "Population subgroups that may benefit or be harmed"
+      ],
+      "rubric_criteria": [
+        { "dimension": "accuracy", "criterion": "Correctly distinguishes between short-term RCT results and long-term epidemiological data", "weight": 1 },
+        { "dimension": "balance", "criterion": "Presents evidence from both pro-keto researchers and mainstream nutrition science", "weight": 1 },
+        { "dimension": "source_credibility", "criterion": "Relies primarily on meta-analyses, systematic reviews, or large-scale RCTs rather than individual small studies", "weight": 1 },
+        { "dimension": "completeness", "criterion": "Addresses the different health outcomes separately (weight, cardiovascular, metabolic, longevity)", "weight": 1 },
+        { "dimension": "coherence", "criterion": "Clearly distinguishes between levels of evidence quality when presenting conflicting findings", "weight": 1 }
+      ],
+      "preset": "standard",
+      "max_cost_usd": 1.50
+    },
+    {
+      "id": "q10",
+      "question": "What are the most significant scientific breakthroughs and technology developments of 2025-2026? Provide a comprehensive overview with context on their impact.",
+      "type": "time-sensitive",
+      "complexity": { "breadth": "high", "depth": "medium", "ambiguity": "medium" },
+      "domains": ["science", "technology", "medicine"],
+      "expected_angles": [
+        "AI and computing advances",
+        "Space exploration milestones",
+        "Biomedical breakthroughs",
+        "Energy and climate technology",
+        "Materials science discoveries",
+        "Significance ranking and real-world impact assessment"
+      ],
+      "rubric_criteria": [
+        { "dimension": "accuracy", "criterion": "All stated breakthroughs actually occurred in the 2025-2026 timeframe with correct dates", "weight": 1 },
+        { "dimension": "completeness", "criterion": "Covers at least 4 different scientific/technology domains", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Provides specific URLs or publication references for each breakthrough mentioned", "weight": 1 },
+        { "dimension": "coherence", "criterion": "Contextualizes each breakthrough within the broader trajectory of its field", "weight": 1 },
+        { "dimension": "source_credibility", "criterion": "Sources are contemporaneous reports from reputable outlets, not outdated or speculative", "weight": 1 }
+      ],
+      "preset": "thorough",
+      "max_cost_usd": 2.00
+    },
+    {
+      "id": "q11",
+      "question": "What is the current status of global semiconductor supply chains and the impact of recent CHIPS Act investments in the US, EU, and Asia?",
+      "type": "time-sensitive",
+      "complexity": { "breadth": "high", "depth": "medium", "ambiguity": "low" },
+      "domains": ["technology", "economics", "geopolitics", "manufacturing"],
+      "expected_angles": [
+        "TSMC, Samsung, Intel fab construction progress",
+        "US CHIPS Act funding allocation and results",
+        "EU Chips Act implementation status",
+        "China's semiconductor self-sufficiency efforts",
+        "Supply chain resilience improvements since 2021-2022 shortages",
+        "Leading-edge vs mature node capacity dynamics"
+      ],
+      "rubric_criteria": [
+        { "dimension": "accuracy", "criterion": "Reports correct funding amounts and fab locations for CHIPS Act projects", "weight": 1 },
+        { "dimension": "completeness", "criterion": "Covers US, EU, and Asian (China, Taiwan, South Korea, Japan) semiconductor initiatives", "weight": 1 },
+        { "dimension": "balance", "criterion": "Addresses both progress and challenges/delays in reshoring efforts", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Cites recent industry reports, government announcements, or earnings calls with dates", "weight": 1 },
+        { "dimension": "source_credibility", "criterion": "References semiconductor industry analysts (SIA, SEMI) or primary government sources", "weight": 1 }
+      ],
+      "preset": "standard",
+      "max_cost_usd": 1.50
+    },
+    {
+      "id": "q12",
+      "question": "What is the latest evidence on the effectiveness and safety of GLP-1 receptor agonists (like Ozempic/semaglutide) for weight loss and related conditions?",
+      "type": "time-sensitive",
+      "complexity": { "breadth": "medium", "depth": "high", "ambiguity": "medium" },
+      "domains": ["medicine", "pharmacology", "public_health"],
+      "expected_angles": [
+        "Clinical trial results for weight loss and cardiovascular outcomes",
+        "Newly identified benefits (addiction, kidney disease, sleep apnea)",
+        "Safety signals and long-term side effect data",
+        "Access and affordability challenges",
+        "Next-generation GLP-1 drugs in the pipeline",
+        "Impact on obesity treatment paradigms"
+      ],
+      "rubric_criteria": [
+        { "dimension": "accuracy", "criterion": "Correctly reports SELECT trial cardiovascular outcome results for semaglutide", "weight": 1 },
+        { "dimension": "completeness", "criterion": "Covers efficacy, safety, access/cost, and pipeline of next-gen drugs", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Cites specific clinical trials by name with publication details", "weight": 1 },
+        { "dimension": "balance", "criterion": "Addresses both the enthusiasm and legitimate concerns (muscle loss, rebound, long-term unknowns)", "weight": 1 },
+        { "dimension": "source_credibility", "criterion": "References NEJM, Lancet, or FDA/EMA regulatory documents rather than only news media", "weight": 1 }
+      ],
+      "preset": "standard",
+      "max_cost_usd": 1.50
+    },
+    {
+      "id": "q13",
+      "question": "How will climate change impact global food production by 2050, and what are the most promising adaptation strategies? Consider both agricultural science and economic policy dimensions.",
+      "type": "multi-domain",
+      "complexity": { "breadth": "high", "depth": "high", "ambiguity": "medium" },
+      "domains": ["climate_science", "agriculture", "economics", "policy"],
+      "expected_angles": [
+        "Crop yield projections under different warming scenarios",
+        "Regional variation (tropics vs temperate regions)",
+        "Technology solutions (drought-resistant crops, precision agriculture, vertical farming)",
+        "Economic modeling of food price impacts",
+        "Trade policy and food security implications",
+        "Adaptation vs mitigation investment trade-offs"
+      ],
+      "rubric_criteria": [
+        { "dimension": "completeness", "criterion": "Integrates climate science projections with agricultural, economic, and policy analysis", "weight": 1 },
+        { "dimension": "accuracy", "criterion": "Cites IPCC or FAO projections with correct scenario labels (SSP1-2.6, SSP5-8.5, etc.)", "weight": 1 },
+        { "dimension": "balance", "criterion": "Covers both climate-vulnerable and potentially climate-benefiting regions", "weight": 1 },
+        { "dimension": "source_credibility", "criterion": "References IPCC, FAO, World Bank, or peer-reviewed agricultural modeling studies", "weight": 1 },
+        { "dimension": "coherence", "criterion": "Clearly links climate projections to agricultural impacts to economic consequences to policy responses", "weight": 1 }
+      ],
+      "preset": "thorough",
+      "max_cost_usd": 2.00
+    },
+    {
+      "id": "q14",
+      "question": "What are the implications of AI in healthcare policy? Analyze the intersection of clinical AI tools, regulatory frameworks, health equity, and patient data privacy.",
+      "type": "multi-domain",
+      "complexity": { "breadth": "high", "depth": "high", "ambiguity": "high" },
+      "domains": ["artificial_intelligence", "healthcare", "policy", "ethics", "privacy"],
+      "expected_angles": [
+        "FDA-cleared AI medical devices and their performance",
+        "Algorithmic bias in clinical decision support",
+        "HIPAA and international health data privacy frameworks",
+        "Impact on clinician workload and burnout",
+        "Health equity implications (access disparities, dataset bias)",
+        "Liability and malpractice questions for AI-assisted diagnosis"
+      ],
+      "rubric_criteria": [
+        { "dimension": "completeness", "criterion": "Spans all four domains: clinical tools, regulation, equity, and privacy", "weight": 1 },
+        { "dimension": "accuracy", "criterion": "Correctly identifies the FDA's regulatory pathway for AI/ML-based Software as a Medical Device (SaMD)", "weight": 1 },
+        { "dimension": "balance", "criterion": "Presents both benefits (efficiency, early detection) and risks (bias, overreliance, privacy)", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Cites specific FDA guidance documents, published clinical validation studies, or policy reports", "weight": 1 },
+        { "dimension": "coherence", "criterion": "Shows how the different domains interact (e.g., how data privacy rules affect AI development for equity)", "weight": 1 }
+      ],
+      "preset": "thorough",
+      "max_cost_usd": 2.00
+    },
+    {
+      "id": "q15",
+      "question": "How is remote and hybrid work reshaping urban economics, commercial real estate, local tax revenues, and workforce productivity? Analyze the evidence from 2020-2026.",
+      "type": "multi-domain",
+      "complexity": { "breadth": "high", "depth": "medium", "ambiguity": "high" },
+      "domains": ["economics", "urban_planning", "real_estate", "labor", "technology"],
+      "expected_angles": [
+        "Commercial real estate vacancy rates and valuation changes",
+        "Urban vs suburban migration patterns",
+        "Impact on city tax revenue and public services",
+        "Productivity evidence (both supporting and contradicting remote work)",
+        "Technology infrastructure enabling distributed work",
+        "Implications for housing affordability and commuter patterns"
+      ],
+      "rubric_criteria": [
+        { "dimension": "completeness", "criterion": "Covers real estate, tax revenue, productivity, and urban migration as interconnected phenomena", "weight": 1 },
+        { "dimension": "accuracy", "criterion": "Uses correct vacancy rate statistics for major office markets", "weight": 1 },
+        { "dimension": "balance", "criterion": "Presents evidence from both remote-work advocates and return-to-office proponents", "weight": 1 },
+        { "dimension": "source_credibility", "criterion": "References BLS data, CBRE/JLL reports, or academic labor economics studies", "weight": 1 },
+        { "dimension": "citation_quality", "criterion": "Cites specific studies on productivity with sample sizes and methodologies noted", "weight": 1 }
+      ],
+      "preset": "standard",
+      "max_cost_usd": 1.50
+    }
+  ]
+}
