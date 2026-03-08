@@ -29,13 +29,27 @@ Find conflicting claims across sources or agents. For each contradiction:
 - State which side is better supported and whether resolution requires further research
 
 ### 3. Source Quality Audit
-Flag findings with weak evidentiary support. A claim needs corroboration if:
-- Backed by only a single source (especially for consequential claims)
-- Relying on low-credibility or outdated sources for time-sensitive topics
-- Evidence does not actually support the stated assertion
-- A quantitative claim lacks a primary data source
 
-Do NOT flag single-source claims for uncontested background facts or widely-accepted definitions.
+#### a. Wikipedia & Tertiary Source Detection
+Any finding citing Wikipedia, Simple Wikipedia, or other encyclopedic sources: flag as **CRITICAL**. Require replacement with the primary source Wikipedia cites or an equivalent authoritative source.
+
+#### b. URL Plausibility Check
+Verify that the URL domain matches the claimed source type:
+- "Peer-reviewed study" must link to a journal or recognized preprint server, not a blog or news site
+- "Government data" must come from an official .gov/.org institutional domain
+- "Industry report" must originate from the named organization's domain
+- Flag mismatches as **IMPORTANT** with a query to locate the actual source
+
+#### c. Temporal Audit
+Flag findings where publication date precedes the data period described (e.g., a 2021 article cited for 2023 statistics). For time-sensitive topics (markets, policy, technology), flag sources older than 2 years as **IMPORTANT** unless no newer source exists.
+
+#### d. Source Diversity Check
+If >30% of all findings cite the same domain or source type (e.g., all from news articles, all from one outlet), flag as **IMPORTANT** — request findings from underrepresented source types (academic, government, industry, investigative journalism).
+
+#### e. Single-Source & Cross-Reference
+- Any claim central to the report's conclusions (**CRITICAL** tier) must be supported by 2+ independent sources. Flag single-sourced critical claims for corroboration.
+- Quantitative claims require a primary data source, not secondary reporting.
+- Do NOT flag single-source claims for uncontested background facts or widely-accepted definitions.
 
 ### 4. Unsupported Assertion Check
 Identify claims lacking concrete evidence: vague summaries, opinions stated as facts, or conclusions not grounded in presented data.
@@ -87,3 +101,4 @@ Critical: [N] | Important: [N] | Minor: [N]
 - Do not repeat or summarize findings — only evaluate them.
 - If research is solid, say so. Not every critique must find major problems.
 - Avoid false positives: do not flag issues that are outside scope, already addressed by other findings, or based on unrealistic expectations of completeness.
+- Always run the full Source Quality Audit (steps a–e) before finalizing severity ratings. A finding that passes content review may still fail source audit.
