@@ -7,16 +7,50 @@ description: "Use when evaluating the credibility and reliability of research so
 
 Credibility scoring framework for evaluating research sources before including them in findings.
 
-## Source Type Taxonomy
+## Source Hierarchy (Strict Weights)
 
-| Source Type | Examples | Base Credibility Weight |
-|-------------|----------|------------------------|
-| **Academic** | Peer-reviewed journals, conference papers, preprints | 0.9 (peer-reviewed) / 0.6 (preprint) |
-| **Official** | Government reports, WHO, company official docs, RFCs | 0.85 |
-| **News — Major** | Reuters, AP, NYT, BBC, domain-specific trade press | 0.7 |
-| **Technical** | Official documentation, specifications, RFCs | 0.8 |
-| **News — Specialized** | Industry trade publications, analyst reports | 0.65 |
-| **Community** | Blogs, forums, Stack Overflow, Reddit, personal sites | 0.4 |
+Sources are ranked by a strict hierarchy. Every source used in research MUST be classified into one of these tiers. The weights determine how much a source can contribute to a claim's confidence.
+
+| Tier | Source Type | Examples | Weight |
+|------|-------------|----------|--------|
+| 1 | **Peer-reviewed academic** | Journals (Nature, Science, Lancet), conference proceedings with peer review | **1.0** |
+| 2 | **Government / International org** | Official government reports, WHO, UN, World Bank, OECD, central bank publications, RFCs | **0.9** |
+| 3 | **Institutional reports** | University research centers, established think tanks (Brookings, RAND), foundation reports | **0.8** |
+| 4 | **Technical documentation** | Official product/API documentation, technical specifications | **0.75** |
+| 5 | **Major news outlets** | Reuters, AP, NYT, BBC, FT, domain-specific trade press with editorial standards | **0.6** |
+| 6 | **Industry / analyst reports** | Gartner, McKinsey, Statista (with methodology), trade publications | **0.5** |
+| 7 | **Preprints** | arXiv, SSRN, medRxiv (not yet peer-reviewed) | **0.45** |
+| 8 | **Blogs / aggregators / community** | Blogs, forums, Stack Overflow, Reddit, personal sites | **0.3** |
+| 9 | **Wikipedia** | Any Wikipedia article in any language | **0.0** |
+
+### Minimum Source Quality Threshold
+
+**At least 50% of sources in any research report must have weight >= 0.8** (Tiers 1-3). If this threshold cannot be met, the report MUST include a prominent limitations note explaining the source quality gap.
+
+### Wikipedia Ban (ABSOLUTE)
+
+Wikipedia is **NEVER** an acceptable source. Weight = 0.0. When you encounter relevant information on Wikipedia:
+1. **Trace to primary sources** — follow Wikipedia's own footnotes/references to the original source
+2. **Cite the primary source directly** — never cite Wikipedia itself
+3. If the primary source is inaccessible, note the claim as `[UNVERIFIED — Wikipedia-only]` and deprioritize it
+4. This applies to ALL Wikipedia variants: en.wikipedia.org, other language editions, Simple Wikipedia, Wikidata
+
+### Low-Credibility Source Blacklist
+
+The following source categories are classified as **low credibility** (weight 0.3 or below) and require corroboration from a Tier 1-3 source before any claim from them can be stated as fact:
+
+| Category | Examples | Why Low Credibility |
+|----------|----------|---------------------|
+| **Commodity aggregators** | Selina Wamucii, Tridge, commodity price scraping sites | Unverified data collection, no methodology disclosure |
+| **Market-size estimators** | Mordor Intelligence, Grand View Research, Allied Market Research | Pay-to-play reports, inflated TAM estimates, no peer review |
+| **Ed-tech / AI list blogs** | DigitalDefynd, AllAboutAI, AnalyticsInsight, Unite.AI | SEO-optimized content, no editorial standards, frequent inaccuracies |
+| **Content farms** | Sites with no bylines, mass-produced articles, AI-generated content | No accountability, no fact-checking |
+| **Press release wires** | PR Newswire, BusinessWire (as sole source) | Company-controlled messaging, not independently verified |
+
+When using a low-credibility source:
+- It MUST be corroborated by at least one Tier 1-3 source
+- If uncorroborated, flag the claim as `[LOW-CREDIBILITY SOURCE — UNCORROBORATED]`
+- Never present low-credibility-sourced claims as established facts
 
 Weights are starting points. Adjust based on evaluation criteria below.
 
@@ -80,15 +114,18 @@ For each source used in research, create a source card:
 
 ```
 Source: [Title]
-URL: [URL]
+URL: [URL — must be actually fetched, never fabricated]
 Author: [Name / Organization]
 Date: [Publication date]
-Type: [Academic | Official | News | Technical | Community]
-Base Weight: [from taxonomy]
+Tier: [1-9 from Source Hierarchy]
+Type: [Peer-reviewed | Government | Institutional | Technical | News | Industry | Preprint | Blog | Wikipedia]
+Base Weight: [from hierarchy table]
 Adjusted Weight: [after evaluation criteria]
 Confidence: [Verified | Likely | Unverified | Contradicted]
+Temporal Check: [PASS | TEMPORAL GAP: details]
 Key Claims: [What this source contributes]
 Notes: [Any caveats, biases, or limitations]
+Blacklisted: [Yes/No — if Yes, corroboration source #]
 ```
 
 ## Red Flags
@@ -103,14 +140,40 @@ Watch for and flag these issues:
 6. **Appeal to authority without substance** — "Expert says X" without methodology or evidence
 7. **Predatory journals** — Papers from journals with no real peer review process
 8. **Undated content** — No publication date, impossible to assess recency
+9. **Wikipedia pass-through** — Information clearly sourced from Wikipedia without tracing to primary references
+10. **URL not fetched** — Source URL was never actually retrieved during the research session (hallucinated citation)
+11. **Temporal impossibility** — Source publication date is earlier than the data year it claims to report
 
-When a red flag is detected, downgrade the source weight by 0.2 and note the flag in the source card.
+When a red flag is detected, downgrade the source weight by 0.2 and note the flag in the source card. Red flags #9-11 are **hard rejections** — the source must be replaced, not merely downgraded.
+
+## Temporal Consistency Check
+
+Before accepting a source for a claim, verify temporal alignment:
+
+1. **Publication date must be plausible for the data** — A source published in 2022 cannot contain 2025 data. If a source claims to report data from a year after its publication, reject it.
+2. **Data vintage must match the claim** — If the research question asks about "2024 trends," a source with 2019 data is insufficient unless used explicitly for historical comparison.
+3. **Projection vs. actuals** — Clearly distinguish between forward-looking projections/forecasts and actual observed data. A 2021 source projecting 2025 values is NOT the same as a 2025 source reporting 2025 actuals.
+4. **Flag temporal mismatches** — If the best available source has a temporal gap, note it: `[TEMPORAL GAP: source from YYYY, claim about YYYY]`
+
+## Source Quality Audit
+
+Before finalizing a research report, run this audit:
+
+1. Count sources by tier and verify >= 50% are Tier 1-3
+2. Verify zero Wikipedia citations appear anywhere
+3. Verify all low-credibility sources are corroborated
+4. Verify no temporal consistency violations
+5. If any check fails, the report cannot be delivered until resolved
 
 ## Quick Evaluation Workflow
 
-1. **Classify** the source type and assign base weight
-2. **Check** recency, authority, cross-references, methodology
-3. **Adjust** the weight based on evaluation criteria
-4. **Assign** confidence level to claims from this source
-5. **Flag** any red flags
-6. **Record** a source card for the research record
+1. **Verify URL was fetched** — if the URL was not actually retrieved during this session, STOP. Do not evaluate; the source cannot be used. (See citation-tracking skill, Anti-Hallucination Safeguards.)
+2. **Check Wikipedia ban** — if the URL contains wikipedia.org, STOP. Trace to primary source instead.
+3. **Check blacklist** — if the source matches the Low-Credibility Source Blacklist, note it and require corroboration.
+4. **Classify** the source type and assign base weight from the hierarchy table.
+5. **Temporal check** — verify publication date is plausible for the data claimed.
+6. **Check** recency, authority, cross-references, methodology modifiers.
+7. **Adjust** the weight based on evaluation criteria.
+8. **Assign** confidence level to claims from this source.
+9. **Flag** any red flags (hard-reject flags #9-11 block the source entirely).
+10. **Record** a source card for the research record.

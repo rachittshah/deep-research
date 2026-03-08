@@ -35,7 +35,9 @@ At the end of every research report, include a numbered source list:
    Source Type: industry blog | Credibility: 6/10
 ```
 
-Source types: peer-reviewed journal, government report, news outlet, industry blog, corporate whitepaper, social media, personal blog, wiki, official documentation, press release
+Source types: peer-reviewed journal, government report, news outlet, industry blog, corporate whitepaper, social media, personal blog, official documentation, press release
+
+**IMPORTANT**: "wiki" is NOT a valid source type. Wikipedia sources are banned — see source-evaluation skill. The credibility score must align with the source hierarchy weights defined in the source-evaluation skill (Tier 1 = 10/10, Tier 8 = 3/10, Tier 9/Wikipedia = 0/10).
 
 ## Provenance Chain
 
@@ -65,7 +67,36 @@ Format:
 3. Opinions, analysis, and synthesis by the research system itself do not require citations, but the underlying facts they draw on do.
 4. When multiple sources support the same claim, cite all of them: `[claim]^[1,3,7]`
 5. Direct quotes MUST include a page number, section reference, or paragraph indicator.
-6. Never cite a source you have not actually read and verified.
+6. **Never cite a source you have not actually read and verified.** If you did not fetch and read the actual page content during this research session, you MUST NOT cite it. No exceptions — this is the #1 anti-hallucination rule.
+7. **URL verification**: Every URL in the Sources appendix must correspond to a page that was actually fetched (via WebFetch or equivalent) during the research session. Do not reconstruct URLs from memory or guess at URL patterns.
+8. **No Wikipedia citations**: Wikipedia URLs must never appear in the Sources appendix. See source-evaluation skill for the Wikipedia ban.
+
+## Bidirectional Citation-Source Check
+
+Before finalizing any report, verify bidirectional integrity:
+
+1. **Forward check (text → sources)**: Every `^[n]` reference in the report body must map to a numbered entry in the Sources appendix. If `^[5]` appears in text, source #5 must exist.
+2. **Backward check (sources → text)**: Every numbered source in the Sources appendix must be referenced by at least one `^[n]` in the report body. If source #5 exists but is never cited, it is an orphan source — either cite it or remove it.
+3. **No gaps in numbering**: Sources must be numbered sequentially (1, 2, 3...) with no gaps. If source #3 is removed, renumber #4 onward.
+4. Flag violations: `[ORPHAN SOURCE: #n never cited]` or `[DANGLING REF: ^[n] has no source entry]`
+
+## Temporal Consistency for Citations
+
+Each citation must pass a temporal plausibility check:
+
+1. **publication_year >= earliest_data_year**: A source's publication date must be equal to or later than the earliest year of data it claims to report. A 2021 paper cannot report 2023 actual statistics.
+2. **Distinguish projections from actuals**: If a source published in 2022 discusses 2025 figures, those are projections/forecasts, not observed data. Label them as such: `[PROJECTION from YYYY source]`
+3. **Flag stale data**: If the research question concerns recent events (last 1-2 years), flag citations older than 3 years: `[STALE: published YYYY]`
+
+## Anti-Hallucination Safeguards
+
+Citation hallucination — generating plausible-looking but fabricated citations — is the most dangerous failure mode. Enforce these safeguards:
+
+1. **Fetched-content requirement**: Only cite URLs whose content you actually retrieved and read during this session. If you "know" a fact but didn't fetch a source for it in this session, either fetch a source now or mark it `[UNSOURCED]`.
+2. **No URL fabrication**: Never construct a URL based on what you think a source's URL might be. Only use URLs returned by WebSearch or followed via links in fetched pages.
+3. **No title fabrication**: The source title in the appendix must match the actual page title or article title from the fetched content, not a guess.
+4. **No author fabrication**: If the author is not clearly stated on the page, use the organization name or "Unknown author" — never guess.
+5. **Passage-quote requirement**: The provenance chain must include an exact quoted passage from the source. If you cannot quote the relevant passage, you did not read the source carefully enough.
 
 ## Orphan Detection
 
@@ -115,3 +146,20 @@ Sources whose URLs no longer resolve. These weaken report credibility.
 - Findings sections: every factual claim cited
 - Analysis sections: underlying facts cited; interpretive statements attributed to the research process
 - Limitations: cite sources that informed the limitations assessment
+
+## Pre-Delivery Citation Checklist
+
+Run ALL checks before delivering any research report. If any check fails, the report is blocked.
+
+- [ ] **Orphan scan**: Zero `[UNSOURCED]` assertions remain
+- [ ] **Bidirectional check**: Every ^[n] maps to a source; every source maps to at least one ^[n]
+- [ ] **Sequential numbering**: No gaps in source numbering
+- [ ] **URL verification**: Every URL in Sources was actually fetched during this session
+- [ ] **No Wikipedia**: Zero wikipedia.org URLs in Sources
+- [ ] **No URL fabrication**: No URLs constructed from memory
+- [ ] **Temporal consistency**: Every source passes publication_year >= earliest_data_year
+- [ ] **Projection labels**: All forward-looking data labeled `[PROJECTION]`
+- [ ] **Anti-hallucination**: Every source has a quoted passage in the provenance chain
+- [ ] **Title/author accuracy**: Titles and authors match fetched content exactly
+- [ ] **Misattribution scan**: Every citation's passage actually supports its claim
+- [ ] **No citation laundering**: Primary sources preferred over secondary summaries
