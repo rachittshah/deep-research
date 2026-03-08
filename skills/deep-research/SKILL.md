@@ -190,6 +190,11 @@ PERSPECTIVE: [role, viewpoint, priorities, preferred sources]
 EXPECTED SOURCES: [source types to prioritize]
 COMPLEXITY: [atomic|moderate|deep] — execute [3|5|8] search queries accordingly
 
+## Source Quality Rules
+- No Wikipedia citations. If Wikipedia appears in results, trace to the primary source it cites and use that instead.
+- Verify every URL you cite was actually fetched — never guess or hallucinate a URL.
+- Check temporal consistency: if a claim references a date or time period, confirm the source's publication date is compatible with the claimed data.
+
 ## Research Process
 1. Draft all your search queries before executing any
 2. Execute searches using WebSearch, fetch promising results with WebFetch
@@ -254,6 +259,9 @@ You are a research critic. Evaluate these combined findings rigorously.
 2. Gap analysis: what important questions remain unanswered?
 3. Contradiction detection: where do findings conflict? Which side has stronger evidence?
 4. Source quality audit: flag single-source claims, low-credibility sources, outdated sources
+   - Flag ANY Wikipedia citations — these must be replaced with primary sources
+   - Check URL plausibility: does the domain match the claimed source type? Flag suspicious or likely hallucinated URLs
+   - Verify temporal consistency: do publication dates support the claimed data? Flag stale sources used for current claims
 5. Unsupported assertion check: identify vague claims lacking concrete evidence
 
 ## Output Format
@@ -280,13 +288,15 @@ Your final recommendation MUST be exactly one of:
 Only entered when the critic recommends `targeted_followup`.
 
 1. From the critic's report, extract each CRITICAL issue and its suggested search queries
-2. For each CRITICAL issue, spawn a focused follow-up agent:
+2. **Prioritize source quality upgrades**: replace Wikipedia citations with primary sources, verify or replace suspicious URLs, and resolve temporal inconsistencies BEFORE addressing content gaps
+3. For each CRITICAL issue, spawn a focused follow-up agent:
    - Narrow scope: only address the specific gap identified
    - Use the critic's suggested queries as starting points
    - Classify as atomic or moderate — follow-ups should never be deep
-3. **Dispatch all follow-up agents in a SINGLE response** (parallel, same as Phase 3)
-4. After follow-up agents return, re-run the critic on the COMBINED findings (original + follow-up)
-5. **Enforce round limits**: standard = 1 round max, thorough = 2 rounds max
+   - Source quality follow-ups: instruct agents to find primary/authoritative replacements for flagged sources
+4. **Dispatch all follow-up agents in a SINGLE response** (parallel, same as Phase 3)
+5. After follow-up agents return, re-run the critic on the COMBINED findings (original + follow-up)
+6. **Enforce round limits**: standard = 1 round max, thorough = 2 rounds max
    - If round limit reached and critic still says targeted_followup, proceed to synthesis anyway and note unresolved gaps in limitations
 
 **CHECKPOINT**: Track follow-up round count. Never exceed the preset limit.
@@ -346,7 +356,8 @@ Produce a report with this exact structure:
 [Actionable takeaways. Concrete and specific.]
 
 ## Sources
-1. [URL] — [Title] | [source_type] | [date]
+[Deduplicate: each unique URL appears only once. Tag each source's type. Order by credibility: government/academic first, then industry/technical, then news, then other.]
+1. [URL] — [Title] | [source_type: government|academic|industry|technical|news|other] | [date]
 ...
 
 ## Citation Rules (MANDATORY)
@@ -376,8 +387,11 @@ Apply the research-review checklist directly. Score each item as PASS, WARN, or 
 | 9 | Sources appendix is complete | Inline citations with no matching source entry |
 | 10 | Report organized by theme, not by agent | "Agent 1 found..." structure |
 | 11 | No hallucinated citations | Source doesn't say what claim says it says |
+| 12 | No Wikipedia citations | Any Wikipedia URL appears in sources |
+| 13 | All URLs were actually fetched | Any cited URL was not fetched by a researcher agent (hallucinated URL) |
+| 14 | Publication dates are consistent with claimed data | Source date incompatible with the time period of the claim it supports |
 
-**For quick preset**: Run items 1, 4, 5, 9 only (abbreviated review).
+**For quick preset**: Run items 1, 4, 5, 9, 12, 13 only (abbreviated review).
 
 **Decision logic:**
 - **Any BLOCK item**: Fix the issue. If it's a synthesis problem, re-run Phase 6 with specific instructions to fix. If it's a research gap, return to Phase 5 (if within round limits) or note in limitations.
