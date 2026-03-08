@@ -48,12 +48,14 @@ Before writing, cross-reference the research plan's angles against your findings
 ## Citation Rules (Non-Negotiable)
 
 1. **Every factual claim** must have an inline citation: `[n]`
-2. Deduplicate sources across agents — same URL = same citation number
-3. If a claim cannot be tied to a specific source, mark it `[UNSOURCED]`
-4. Multiple sources supporting one claim: cite all — `[1][3][7]`
-5. Direct quotes: citation immediately after the closing quote
-6. Sources appendix must include: number, URL, title, source type, date accessed
-7. Every inline `[n]` must resolve to a Sources entry. Every Sources entry must be cited at least once.
+2. **Deduplication**: Same URL across agents = same citation number. Before assigning a new number, check if the URL (ignoring query params and fragments) already exists. Merge findings from different agents into the shared citation.
+3. **URL mandate**: Every Sources entry MUST have a fetchable URL. If a finding lacks a URL, do NOT add it to Sources — mark the claim `[WEAKLY SOURCED]` inline instead.
+4. If a claim cannot be tied to any source at all, mark it `[UNSOURCED]`
+5. Multiple sources supporting one claim: cite all — `[1][3][7]`
+6. Direct quotes: citation immediately after the closing quote
+7. **Source type labeling**: Every Sources entry must be tagged with exactly one of: `peer-reviewed` | `government` | `institutional` | `news` | `industry` | `other`
+8. Every inline `[n]` must resolve to a Sources entry. Every Sources entry must be cited at least once.
+9. **Anti-Wikipedia**: If any finding cites Wikipedia, trace the claim to the primary source from the researcher's evidence. If a primary source exists, cite that instead. If none exists, drop the Wikipedia link and mark the claim `[WEAKLY SOURCED]`. Wikipedia must NEVER appear in Sources.
 
 ## Report Structure
 
@@ -96,6 +98,7 @@ Produce exactly this format:
 [Actionable, concrete takeaways. What should the reader understand or do?]
 
 ## Sources
+<!-- Order: peer-reviewed and government sources first, then institutional, news, industry, other -->
 1. [URL] — [Title] | [source_type] | [date]
 2. [URL] — [Title] | [source_type] | [date]
 ...
